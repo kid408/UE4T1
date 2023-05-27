@@ -15,9 +15,11 @@ ASExplosiveBarrel::ASExplosiveBarrel()
 	ForceComp = CreateDefaultSubobject<URadialForceComponent>("ForceComp");
 	ForceComp->SetupAttachment(MeshComp);
 	ForceComp->SetAutoActivate(false);
+	ForceComp->redius
 	//ForceComp->Redius = 750.0f;
 	ForceComp->ImpulseStrength = 2500.0f;
 	ForceComp->bImpulseVelChange = true;
+	ForceComp->bIgnoreOwningActor = true;
 
 	ForceComp->AddCollisionChannelToAffect(ECC_WorldDynamic);
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.

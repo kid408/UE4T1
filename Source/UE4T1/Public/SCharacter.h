@@ -13,9 +13,13 @@ UCLASS()
 class UE4T1_API ASCharacter : public ACharacter
 {
 	GENERATED_BODY()
-
+protected:
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<AActor> ProjectileClass;
 public:
+	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArmComp;
+	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComp;
 	// Sets default values for this character's properties
 	ASCharacter();
@@ -25,6 +29,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	void MoveForward(float value);
+	void MoveRight(float value);
+
+	void PrimaryTick();
+	
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

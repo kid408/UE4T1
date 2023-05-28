@@ -8,23 +8,37 @@
 
 class UCameraComponent;
 class USpringArmComponent;
+class USInteractionComponent;
+class UAnimMontage;
+
 
 UCLASS()
 class UE4T1_API ASCharacter : public ACharacter
 {
 	GENERATED_BODY()
 protected:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> ProjectileClass;
+
+	UPROPERTY(EditAnywhere,Category="Attack")
+	UAnimMontage* AttackAnim;
+
+	FTimerHandle TimerHandle_PrimaryAttack;
+
+	void PrimaryAttack_TimeElapsed();
 public:
-	UPROPERTY(VisibleAnywhere)
-	USpringArmComponent* SpringArmComp;
-	UPROPERTY(VisibleAnywhere)
-	UCameraComponent* CameraComp;
+	
 	// Sets default values for this character's properties
 	ASCharacter();
 
 protected:
+	UPROPERTY(VisibleAnywhere)
+		USpringArmComponent* SpringArmComp;
+	UPROPERTY(VisibleAnywhere)
+		UCameraComponent* CameraComp;
+	UPROPERTY(VisibleAnywhere)
+	USInteractionComponent* InteractionComp;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -32,6 +46,7 @@ protected:
 	void MoveRight(float value);
 
 	void PrimaryTick();
+	void PrimaryInteract();
 	
 public:
 	// Called every frame

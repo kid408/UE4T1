@@ -37,6 +37,7 @@ void USInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void USInteractionComponent::PrimaryInteract()
 {
+	// 创建一个查询参数
 	FCollisionObjectQueryParams objectQueryParams;
 	objectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
 
@@ -44,8 +45,10 @@ void USInteractionComponent::PrimaryInteract()
 
 	FVector EyeLocation;
 	FRotator EyeRotation;
+	// 获得眼的位置
 	MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
+	// 从眼的位置到1000的直线位置
 	FVector End = EyeLocation + (EyeRotation.Vector() * 1000);
 
 	/*
@@ -69,12 +72,14 @@ void USInteractionComponent::PrimaryInteract()
 
 	// 球状查找
 
+	// 声明命中结果
 	TArray<FHitResult> Hits;
 	
 	float Radius = 30.f;
 	FCollisionShape Shape;
 	Shape.SetSphere(Radius);
 
+	// 如果眼看到的1000范围之内命中到了物品
 	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation, End, FQuat::Identity, objectQueryParams, Shape);
 	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
 	for (FHitResult Hit :Hits)
@@ -86,6 +91,7 @@ void USInteractionComponent::PrimaryInteract()
 			if (HitActor->Implements<USGamePlayInterface>())
 			{
 				APawn* MyPawn = Cast<APawn>(MyOwner);
+				// 执行被看到物品的交互动作
 				ISGamePlayInterface::Execute_Interact(HitActor, MyPawn);
 				break;
 			}

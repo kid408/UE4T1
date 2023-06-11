@@ -29,22 +29,10 @@ ASCharacter::ASCharacter()
 
 	bUseControllerRotationYaw = false;
 
-}
-
-// Called when the game starts or when spawned
-void ASCharacter::BeginPlay()
-{
-	Super::BeginPlay();
+	AttackAnimDely = 0.2f;
 
 }
 
-
-// Called every frame
-void ASCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
 
 // Called to bind functionality to input
 void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -59,6 +47,10 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	// 添加动作事件，需要在 project settings里的 input下的bandings添加 action mappings添加对应的事件PrimaryAttack，系统默认无参数
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &ASCharacter::PrimaryTick);
+
+	PlayerInputComponent->BindAction("SecondaryAttack", IE_Pressed, this, &ASCharacter::BlackHoleAttack);
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ASCharacter::Dash);
+
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASCharacter::Jump);
 }
@@ -91,12 +83,44 @@ void ASCharacter::PrimaryTick()
 
 	// 设置事件句柄，设置0.2秒之后触发PrimaryAttack_TimeElapsed 函数，因为动画有抬手动作，0.2秒之后才完全抬手，
 	// 不设置时间延迟的话，立即播放会导致子弹的位置和手的位置对应不上
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, 0.2f);
+	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ASCharacter::PrimaryAttack_TimeElapsed, AttackAnimDely);
 	
 }
 
 
 void ASCharacter::PrimaryAttack_TimeElapsed()
+{
+	SpawnProjectile(ProjectileClass);
+
+	return;
+	
+}
+
+void ASCharacter::BlackHoleAttack()
+{
+	PlayAnimMontage(SecondAttackAnim);
+
+	GetWorldTimerManager().SetTimer(TimerHandle_BlackHoleAttack, this, &ASCharacter::BlackholeAttack_TimeElapsed, AttackAnimDely);
+}
+
+void ASCharacter::BlackholeAttack_TimeElapsed()
+{
+	SpawnProjectile(BlackHoleProjectileClass);
+}
+
+void ASCharacter::Dash()
+{
+	PlayAnimMontage(AttackAnim);
+
+	GetWorldTimerManager().SetTimer(TImerHandle_Dash, this, &ASCharacter::Dash_TimeElapsed, AttackAnimDely);
+}
+
+void ASCharacter::Dash_TimeElapsed()
+{
+	SpawnProjectile(DashProjectileClass);
+}
+
+void ASCharacter::SpawnProjectile(TSubclassOf<AActor> classToSpawn)
 {
 	// 人话: 在ensure基础上加上自定义msg供调试
 	// ensureMsgf(exp, msg, ...);
@@ -106,23 +130,54 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 	//if (ensure(ProjectileClass)) {
 	// 总是触发
 	//if (ensureAlways(ProjectileClass)) {
-	if (ensure(ProjectileClass)) {
+	if (ensure(classToSpawn)) {
 		// 找到手指的骨骼位置
 		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 		// 将手指骨骼位置绑定朝向
-		FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
+
 		FActorSpawnParameters SpawnParams;
 		// 在生成点解决冲突的方法。未定义意味着没有重写，使用actor的设置
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		// 设置发起者，后续子弹调用的时候可以判断子弹和发起者是不是一个人，同一个人可以取消碰撞
 		SpawnParams.Instigator = this;
 
+		FHitResult Hit;
+		FVector TraceStart = CameraComp->GetComponentLocation();
+		// 终点站远到目视距离(不要太远，仍然对未命中的准星进行调整)
+		FVector TraceEnd = CameraComp->GetComponentLocation() + (GetControlRotation().Vector() * 5000);
+
+		FCollisionShape Shape;
+		Shape.SetSphere(20.0f);
+
+
+		// 忽略角色
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		FCollisionObjectQueryParams ObjParams;
+		ObjParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+		ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
+		ObjParams.AddObjectTypesToQuery(ECC_Pawn);
+
+		FRotator ProjRotation;
+		// rue如果我们得到一个阻塞命中(替代:SweepSingleByChannel 与 ECC_WorldDynamic)
+		if (GetWorld()->SweepSingleByObjectType(Hit,TraceStart,TraceEnd,FQuat::Identity,ObjParams,Shape,Params))
+		{
+			// 调整位置，最终瞄准准星
+			ProjRotation = FRotationMatrix::MakeFromX(Hit.ImpactPoint - HandLocation).Rotator();
+		} 
+		else
+		{
+			// 没有命中
+			ProjRotation = FRotationMatrix::MakeFromX(TraceEnd - HandLocation).Rotator();
+		}
+
+
+		FTransform SpawnTM = FTransform(ProjRotation, HandLocation);
 		// 生成子弹，生成位置是手指方向，并传入发起者
-		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+		GetWorld()->SpawnActor<AActor>(classToSpawn, SpawnTM, SpawnParams);
 	}
 }
-
-
 
 void ASCharacter::PrimaryInteract()
 {
@@ -132,3 +187,5 @@ void ASCharacter::PrimaryInteract()
 		InteractionComp->PrimaryInteract();
 	}
 }
+
+

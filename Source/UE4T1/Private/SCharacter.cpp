@@ -34,6 +34,13 @@ ASCharacter::ASCharacter()
 }
 
 
+void ASCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	AttributeComp->OnHealthChange.AddDynamic(this, &ASCharacter::OnHealthChanged);
+}
+
+
 // Called to bind functionality to input
 void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -141,11 +148,6 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> classToSpawn)
 		// 设置发起者，后续子弹调用的时候可以判断子弹和发起者是不是一个人，同一个人可以取消碰撞
 		SpawnParams.Instigator = this;
 
-		FHitResult Hit;
-		FVector TraceStart = CameraComp->GetComponentLocation();
-		// 终点站远到目视距离(不要太远，仍然对未命中的准星进行调整)
-		FVector TraceEnd = CameraComp->GetComponentLocation() + (GetControlRotation().Vector() * 5000);
-
 		FCollisionShape Shape;
 		Shape.SetSphere(20.0f);
 
@@ -159,23 +161,49 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> classToSpawn)
 		ObjParams.AddObjectTypesToQuery(ECC_WorldStatic);
 		ObjParams.AddObjectTypesToQuery(ECC_Pawn);
 
-		FRotator ProjRotation;
-		// rue如果我们得到一个阻塞命中(替代:SweepSingleByChannel 与 ECC_WorldDynamic)
+		//FRotator ProjRotation;
+		
+		
+		FVector TraceStart = CameraComp->GetComponentLocation();
+		// 终点站远到目视距离(不要太远，仍然对未命中的准星进行调整)
+		FVector TraceEnd = CameraComp->GetComponentLocation() + (GetControlRotation().Vector() * 5000);
+
+		
+		/*
 		if (GetWorld()->SweepSingleByObjectType(Hit,TraceStart,TraceEnd,FQuat::Identity,ObjParams,Shape,Params))
 		{
-			// 调整位置，最终瞄准准星
-			ProjRotation = FRotationMatrix::MakeFromX(Hit.ImpactPoint - HandLocation).Rotator();
+			//// 调整位置，最终瞄准准星
+			//ProjRotation = FRotationMatrix::MakeFromX(Hit.ImpactPoint - HandLocation).Rotator();
 		} 
 		else
 		{
 			// 没有命中
 			ProjRotation = FRotationMatrix::MakeFromX(TraceEnd - HandLocation).Rotator();
+		}*/
+
+		FHitResult Hit;
+		// 如果我们得到一个阻塞命中(替代:SweepSingleByChannel 与 ECC_WorldDynamic)
+		if (GetWorld()->SweepSingleByObjectType(Hit, TraceStart, TraceEnd, FQuat::Identity, ObjParams, Shape, Params))
+		{
+			TraceEnd = Hit.ImpactPoint;
 		}
+
+		// find new direction/rotation from Hand pointing to impact point in world.
+		FRotator ProjRotation = FRotationMatrix::MakeFromX(TraceEnd - HandLocation).Rotator();
 
 
 		FTransform SpawnTM = FTransform(ProjRotation, HandLocation);
 		// 生成子弹，生成位置是手指方向，并传入发起者
 		GetWorld()->SpawnActor<AActor>(classToSpawn, SpawnTM, SpawnParams);
+	}
+}
+
+void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
+{
+	if (NewHealth <=0.0f && Delta<=0.0f)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		DisableInput(PC);
 	}
 }
 

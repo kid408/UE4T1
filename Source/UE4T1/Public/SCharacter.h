@@ -64,6 +64,11 @@ protected:
 	void Dash_TimeElapsed();
 
 	void SpawnProjectile(TSubclassOf<AActor> classToSpawn);
+
+	UFUNCTION()
+		void OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta);
+
+	virtual void PostInitializeComponents() override;
 	
 public:
 	ASCharacter();

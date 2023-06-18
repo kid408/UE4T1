@@ -26,16 +26,16 @@ void ASDashProjectile::Explode_Implementation()
 	// 如果已经通过其他渠道爆炸，取消定时器
 	GetWorldTimerManager().ClearTimer(TimerHandle_DelayedDetonate);
 
-	UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
+	// 生成弹道 瞬间转移不需要弹道
+	//UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
 
-	EffectComp->DeactivateSystem();
+	/*EffectComp->DeactivateSystem();
 	MoveComp->StopMovementImmediately();
-	SetActorEnableCollision(false);
+	SetActorEnableCollision(false);*/
 
 	FTimerHandle TimerHandle_DelayedTeleport;
 	GetWorldTimerManager().SetTimer(TimerHandle_DelayedTeleport, this, &ASDashProjectile::TeleprtInstigator, TeleportDelay);
-
-
+	
 }
 
 void ASDashProjectile::TeleprtInstigator()
@@ -45,6 +45,7 @@ void ASDashProjectile::TeleprtInstigator()
 	{
 		// 保持发起者的朝向或者已经结束，开始震动
 		ActorToTeleport->TeleportTo(GetActorLocation(), ActorToTeleport->GetActorRotation(), false, false);
+		Destroy();
 	}
 }
 

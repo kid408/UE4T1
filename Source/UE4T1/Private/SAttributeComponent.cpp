@@ -13,7 +13,7 @@ USAttributeComponent::USAttributeComponent()
 	Health = 100;
 }
 
-bool USAttributeComponent::IsAlive()
+bool USAttributeComponent::IsAlive() const
 {
 	return Health > 0.0f;
 }
@@ -25,8 +25,16 @@ float USAttributeComponent::GetHealth()
 
 bool USAttributeComponent::ApplyHealthChange(float Delta)
 {
-	Health += Delta;
-	OnHealthChange.Broadcast(nullptr,this,Health,Delta);
+	if (Health > 0.0f)
+	{
+		Health += Delta;
+		if (Health < 0.0f)
+		{
+			Health = 0.0f;
+		}
+		OnHealthChange.Broadcast(nullptr, this, Health, Delta);
+	}
+	
 	return true;
 }
 

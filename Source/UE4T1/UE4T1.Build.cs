@@ -8,7 +8,7 @@ public class UE4T1 : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" ,"AIModule" ,"GamePlayTasks"});
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" ,"AIModule" ,"GamePlayTasks" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

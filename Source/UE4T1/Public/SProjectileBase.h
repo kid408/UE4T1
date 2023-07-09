@@ -9,6 +9,9 @@
 class USphereComponent;
 class UParticleSystemComponent;
 class UProjectileMovementComponent;
+class UAudioComponent;
+class USoundCue;
+class UCameraShakeBase;
 
 UCLASS(ABSTRACT) // ABSTRACT 标示着这个类 是不完整的，
 class UE4T1_API ASProjectileBase : public AActor
@@ -16,15 +19,30 @@ class UE4T1_API ASProjectileBase : public AActor
 	GENERATED_BODY()
 	
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+		TSubclassOf<UCameraShakeBase> ImpactShake;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+		float ImpactShakeInnerRadius;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
+		float ImpactShakeOuterRadius;
+
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 		UParticleSystem* ImpactVFX;
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+		USoundCue* ImpactSound;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		USphereComponent* SphereComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Components")
 		UProjectileMovementComponent* MoveComp;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		UParticleSystemComponent* EffectComp;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+		UAudioComponent* AudioComp;
 
 	// 虚函数，可以在子类中重写
 	UFUNCTION()

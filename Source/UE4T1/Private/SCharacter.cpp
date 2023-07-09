@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/characterMovementComponent.h"
 #include <SInteractionComponent.h>
+#include <Kismet/GameplayStatics.h>
 // Sets default values
 ASCharacter::ASCharacter()
 {
@@ -30,6 +31,8 @@ ASCharacter::ASCharacter()
 	bUseControllerRotationYaw = false;
 
 	AttackAnimDely = 0.2f;
+	TimeToHitParamName = "TimeToHit";
+	HandSocketName = "Muzzle_01";
 
 }
 
@@ -86,7 +89,9 @@ void ASCharacter::MoveRight(float Value)
 void ASCharacter::PrimaryTick()
 {
 	// 播放动画，动画需要是 Montage
-	PlayAnimMontage(AttackAnim);
+	//PlayAnimMontage(AttackAnim);
+
+	StartAttackEffects();
 
 	// 设置事件句柄，设置0.2秒之后触发PrimaryAttack_TimeElapsed 函数，因为动画有抬手动作，0.2秒之后才完全抬手，
 	// 不设置时间延迟的话，立即播放会导致子弹的位置和手的位置对应不上
@@ -105,7 +110,9 @@ void ASCharacter::PrimaryAttack_TimeElapsed()
 
 void ASCharacter::BlackHoleAttack()
 {
-	PlayAnimMontage(SecondAttackAnim);
+	//PlayAnimMontage(SecondAttackAnim);
+
+	StartAttackEffects();
 
 	GetWorldTimerManager().SetTimer(TimerHandle_BlackHoleAttack, this, &ASCharacter::BlackholeAttack_TimeElapsed, AttackAnimDely);
 }
@@ -117,7 +124,8 @@ void ASCharacter::BlackholeAttack_TimeElapsed()
 
 void ASCharacter::Dash()
 {
-	PlayAnimMontage(AttackAnim);
+	//PlayAnimMontage(AttackAnim);
+	StartAttackEffects();
 
 	GetWorldTimerManager().SetTimer(TImerHandle_Dash, this, &ASCharacter::Dash_TimeElapsed, AttackAnimDely);
 }
@@ -125,6 +133,13 @@ void ASCharacter::Dash()
 void ASCharacter::Dash_TimeElapsed()
 {
 	SpawnProjectile(DashProjectileClass);
+}
+
+void ASCharacter::StartAttackEffects()
+{
+	PlayAnimMontage(AttackAnim);
+
+	UGameplayStatics::SpawnEmitterAttached(CastingEffect,GetMesh(),HandSocketName,FVector::ZeroVector,FRotator::ZeroRotator,EAttachLocation::SnapToTarget);
 }
 
 void ASCharacter::SpawnProjectile(TSubclassOf<AActor> classToSpawn)
@@ -139,7 +154,8 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> classToSpawn)
 	//if (ensureAlways(ProjectileClass)) {
 	if (ensure(classToSpawn)) {
 		// 找到手指的骨骼位置
-		FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+		// FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+		FVector HandLocation = GetMesh()->GetSocketLocation(HandSocketName);
 		// 将手指骨骼位置绑定朝向
 
 		FActorSpawnParameters SpawnParams;
@@ -200,6 +216,10 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> classToSpawn)
 
 void ASCharacter::OnHealthChanged(AActor* InstigatorActor, USAttributeComponent* OwningComp, float NewHealth, float Delta)
 {
+	if (Delta < 0.0f)
+	{
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
+	}
 	if (NewHealth <=0.0f && Delta<=0.0f)
 	{
 		APlayerController* PC = Cast<APlayerController>(GetController());

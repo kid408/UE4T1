@@ -12,6 +12,7 @@ class USpringArmComponent;
 class USInteractionComponent;
 class UAnimMontage;
 class USAttributeComponent;
+class UParticleSystem;
 
 
 UCLASS()
@@ -19,6 +20,12 @@ class UE4T1_API ASCharacter : public ACharacter
 {
 	GENERATED_BODY()
 protected:
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+		FName TimeToHitParamName;
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+		FName HandSocketName;
+
+
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	TSubclassOf<AActor> ProjectileClass;
 
@@ -31,6 +38,9 @@ protected:
 	UAnimMontage* AttackAnim;
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	UAnimMontage* SecondAttackAnim;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+		UParticleSystem* CastingEffect;
 
 	FTimerHandle TimerHandle_PrimaryAttack;
 	FTimerHandle TimerHandle_BlackHoleAttack;
@@ -62,6 +72,8 @@ protected:
 	void BlackholeAttack_TimeElapsed();
 	void Dash();
 	void Dash_TimeElapsed();
+
+	void StartAttackEffects();
 
 	void SpawnProjectile(TSubclassOf<AActor> classToSpawn);
 

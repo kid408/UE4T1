@@ -43,7 +43,7 @@ public:
 	float GetHealth();
 
 	UFUNCTION(BlueprintCallable,Category = "Attributes")
-	bool ApplyHealthChange(float Delta);
+	bool ApplyHealthChange(AActor* InstigatorActor, float Delta);
 
 		
 };

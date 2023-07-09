@@ -23,7 +23,7 @@ void ASPowerup_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 	USAttributeComponent* AttributComp = Cast<USAttributeComponent>(InstigatorPawn->GetComponentByClass(USAttributeComponent::StaticClass()));
 	if (ensureMsgf(AttributComp, TEXT("SPowerup_HealthPotion AttributCom is null")))
 	{
-		if (AttributComp->ApplyHealthChange(AttributComp->GetHealthMax()))
+		if (AttributComp->ApplyHealthChange(this,AttributComp->GetHealthMax()))
 		{
 			HideAndCooldownPowerup();
 		}

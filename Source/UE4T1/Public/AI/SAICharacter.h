@@ -8,6 +8,8 @@
 
 class UPawnSensingComponent;
 class USAttributeComponent;
+class UUserWidget;
+class USWorldUserWidget;
 
 UCLASS()
 class UE4T1_API ASAICharacter : public ACharacter
@@ -18,6 +20,14 @@ public:
 	ASAICharacter();
 
 protected:
+
+	USWorldUserWidget* ActiveHealthBar;
+
+	UPROPERTY(EditDefaultsOnly,Category="UI")
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+		FName TimeToHitParamName;
+
 	void SetTargetActor(AActor* NewTarget);
 
 	virtual void PostInitializeComponents() override;

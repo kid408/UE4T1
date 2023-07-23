@@ -30,7 +30,7 @@ void ASGameModeBase::SpawnBotTimerElapsed()
 	{
 		ASAICharacter* Bot = *It;
 
-		USAttributeComponent* AttributeComp = Cast<USAttributeComponent>(Bot->GetComponentByClass(USAttributeComponent::StaticClass()));
+		USAttributeComponent* AttributeComp = USAttributeComponent::GetAttributes(Bot);
 		if (AttributeComp && AttributeComp->IsAlive())
 		{
 			NrofAliveBots++;
@@ -48,7 +48,6 @@ void ASGameModeBase::SpawnBotTimerElapsed()
 
 	if (NrofAliveBots >= MaxBotCount)
 	{
-		UE_LOG(LogTemp, Log, TEXT("OnQueryCompleted err,NrofAliveBots:%u"), NrofAliveBots);
 		return;
 	}
 
@@ -78,3 +77,18 @@ void ASGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryIn
 		DrawDebugSphere(GetWorld(), locations[0], 50.0f, 20,FColor::Blue, false, 5.0f);
 	}
 }
+
+void ASGameModeBase::KillAllAI()
+{
+	for (TActorIterator<ASAICharacter> It(GetWorld()); It; ++It)
+	{
+		ASAICharacter* Bot = *It;
+
+		USAttributeComponent* AttrbuteComp = USAttributeComponent::GetAttributes(Bot);
+		if (ensure(AttrbuteComp) && AttrbuteComp->IsActorAlive(Bot))
+		{
+			AttrbuteComp->Kill(this);
+		}
+	}
+}
+

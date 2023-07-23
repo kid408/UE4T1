@@ -16,6 +16,13 @@ class UE4T1_API USAttributeComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
+
+	UFUNCTION(BlueprintCallable,Category = "Attributes")
+	static USAttributeComponent* GetAttributes(AActor* FromActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+		static bool IsActorAlive(AActor* Actor);
+
 	// Sets default values for this component's properties
 	USAttributeComponent();
 
@@ -45,5 +52,7 @@ public:
 	UFUNCTION(BlueprintCallable,Category = "Attributes")
 	bool ApplyHealthChange(AActor* InstigatorActor, float Delta);
 
+	UFUNCTION(BlueprintCallable)
+	bool Kill(AActor* InstigatorActor);
 		
 };

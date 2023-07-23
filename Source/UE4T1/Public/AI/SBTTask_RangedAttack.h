@@ -13,8 +13,15 @@ UCLASS()
 class UE4T1_API USBTTask_RangedAttack : public UBTTaskNode
 {
 	GENERATED_BODY()
-	
-		virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)override;
+
+	USBTTask_RangedAttack();
+	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)override;
+
+public:
+	UPROPERTY(EditAnywhere, Category = "AI")
+		float MaxBulletSpread;
+
+		
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")

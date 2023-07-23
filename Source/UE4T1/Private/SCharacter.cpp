@@ -7,6 +7,7 @@
 #include "GameFramework/characterMovementComponent.h"
 #include <SInteractionComponent.h>
 #include <Kismet/GameplayStatics.h>
+#include <Logging/LogMacros.h>
 // Sets default values
 ASCharacter::ASCharacter()
 {
@@ -63,6 +64,11 @@ void ASCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &ASCharacter::PrimaryInteract);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ASCharacter::Jump);
+}
+
+void ASCharacter::HealSelf(float Amount)
+{
+	AttributeComp->ApplyHealthChange(this, Amount);
 }
 
 void ASCharacter::MoveForward(float value)
@@ -211,6 +217,8 @@ void ASCharacter::SpawnProjectile(TSubclassOf<AActor> classToSpawn)
 		FTransform SpawnTM = FTransform(ProjRotation, HandLocation);
 		// 生成子弹，生成位置是手指方向，并传入发起者
 		GetWorld()->SpawnActor<AActor>(classToSpawn, SpawnTM, SpawnParams);
+		
+		//UE_LOG(LogTemp, Log, TEXT("GetHealth:%u"), AttributeComp->GetHealth());
 	}
 }
 

@@ -9,6 +9,8 @@
 #include <SAttributeComponent.h>
 #include <EngineUtils.h>
 #include <DrawDebugHelpers.h>
+#include <SCharacter.h>
+#include <Misc/AssertionMacros.h>
 
 ASGameModeBase::ASGameModeBase()
 {
@@ -91,4 +93,30 @@ void ASGameModeBase::KillAllAI()
 		}
 	}
 }
+
+void ASGameModeBase::RespawnPlayerElapsed(AController* controller)
+{
+	if (ensure(controller))
+	{
+		controller->UnPossess();
+		RestartPlayer(controller);
+	}
+}
+
+void ASGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
+{
+	ASCharacter* Player = Cast<ASCharacter>(VictimActor);
+	if (Player)
+	{
+		FTimerHandle TimeHandle_RespawnDely;
+		FTimerDelegate Delegate;
+		Delegate.BindUFunction(this, "RespawnPlayerElapsed",Player->GetController());
+
+		float RespawnDely = 2.0f;
+		GetWorldTimerManager().SetTimer(TimeHandle_RespawnDely,Delegate, RespawnDely,false);
+
+		UE_LOG(LogTemp, Log, TEXT("OnActorKilled: victim:%s,killer:%s"), *GetNameSafe(VictimActor), *GetNameSafe(Killer));
+	}
+}
+
 
